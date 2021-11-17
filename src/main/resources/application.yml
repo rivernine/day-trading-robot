@@ -1,14 +1,15 @@
+server.port: 8081
+
 spring:
   profiles:
-    active: h2db
+    active: mariadb
     group:
       mariadb: local-mariadb
-      h2db: local-h2db
 
 upbit:
   accessKey: ${accessKey:NONE}
   secretKey: ${secretKey:NONE}
-  markets: ${markets:KRW-BTC,KRW-ETH}
+  markets: ${markets:KRW-BTC}
   candleMinutes: ${candleMinutes:5}
   longBlueCandleRate: ${longBlueCandleRate:0.004}
   lossCutRate: ${lossCutRate:0.02}
@@ -20,30 +21,12 @@ upbit:
 spring:
   config:
     activate:
-      on-profile: local-h2db
-  jpa:
-    show-sql: true
-    properties.hibernate.dialect.storage_engine: innodb
-  datasource:
-    hikari:
-      jdbc-url: jdbc:h2:mem:testdb;MODE=MYSQL
-      username: rivernine
-  h2.console:
-    enabled: true
-    path: /h2-console
-    settings.web-allow-others: true
-
----
-
-spring:
-  config:
-    activate:
       on-profile: local-mariadb
   datasource:
-    url: jdbc:mariadb://172.17.0.1:3306/cryptodb
+    url: jdbc:mariadb://192.168.56.100:3306/UPBIT
     driver-class-name: org.mariadb.jdbc.Driver
-    username: 
-    password: 
+    username: root
+    password: root
     hikari:
       connection-timeout: 60000 # 1min
       maximum-pool-size: 20
