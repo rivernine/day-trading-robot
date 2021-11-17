@@ -1,0 +1,53 @@
+spring:
+  profiles:
+    active: h2db
+    group:
+      mariadb: local-mariadb
+      h2db: local-h2db
+
+upbit:
+  accessKey: ${accessKey:NONE}
+  secretKey: ${secretKey:NONE}
+  markets: ${markets:KRW-BTC,KRW-ETH}
+  candleMinutes: ${candleMinutes:5}
+  longBlueCandleRate: ${longBlueCandleRate:0.004}
+  lossCutRate: ${lossCutRate:0.02}
+  balancePerLevel: ${balancePerLevel:10000.0,20000.0,30000.0,40000.0,50000.0}
+  marginRatePerLevel: ${marginRatePerLevel:0.005,0.004,0.003,0.002,0.001}
+  scaleTradeRatePerLevel: ${scaleTradeRatePerLevel:0.004,0.005,0.006,0.007,0.008}
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local-h2db
+  jpa:
+    show-sql: true
+    properties.hibernate.dialect.storage_engine: innodb
+  datasource:
+    hikari:
+      jdbc-url: jdbc:h2:mem:testdb;MODE=MYSQL
+      username: rivernine
+  h2.console:
+    enabled: true
+    path: /h2-console
+    settings.web-allow-others: true
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local-mariadb
+  datasource:
+    url: jdbc:mariadb://172.17.0.1:3306/cryptodb
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: 
+    password: 
+    hikari:
+      connection-timeout: 60000 # 1min
+      maximum-pool-size: 20
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create # 변경된 스키마만 적용 (none/update/validate/create/create-drop)
