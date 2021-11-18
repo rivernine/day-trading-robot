@@ -61,8 +61,9 @@ public class DayTradingJobScheduler {
     Double me = avg;
     Double hi = avg + std * 2;
     Double pos = (objs[0].get("trade_price").getAsDouble() - lo) / (hi - lo);
-    log.info("lo: " + String.format("%.0f", lo) + " me: " + String.format("%.0f", me) + " hi: "
-        + String.format("%.0f", hi) + " pos: " + String.format("%.2f", pos));
+    // log.info("lo: " + String.format("%.0f", lo) + " me: " + String.format("%.0f",
+    // me) + " hi: "
+    // + String.format("%.0f", hi) + " pos: " + String.format("%.2f", pos));
     boll = Math.round(pos * 100) / 100.0;
     if (pos <= 0.1) {
       return "bid";
@@ -108,7 +109,7 @@ public class DayTradingJobScheduler {
         negativeRMF += tp * volList[i];
     }
     Double befMfi = positiveRMF / (positiveRMF + negativeRMF) * 100;
-    log.info(curMfi.toString());
+    // log.info(curMfi.toString());
     mfi = Math.round(curMfi * 100) / 100.0;
     if (curMfi < 20 && curMfi - befMfi > 0) {
       return "bid";
@@ -119,11 +120,11 @@ public class DayTradingJobScheduler {
     }
   }
 
-  @Scheduled(fixedDelay = 1000000)
+  @Scheduled(fixedDelay = 1000)
   public void runGetMultipleCandlesJob() {
     String market = "KRW-BTC";
     JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "10", "20");
-    log.info("{}", result[0]);
+    // log.info("{}", result[0]);
     // log.info("boll: {}", checkBollinger(result));
     // log.info("mfi: {}", checkMFI(Arrays.copyOfRange(result, 0, 11)));
     String bollFlag = checkBollinger(result);
@@ -131,35 +132,33 @@ public class DayTradingJobScheduler {
     Double price = result[0].get("trade_price").getAsDouble();
 
     Order basketOrder = orderRepository.getOrder();
-    log.info("{}", basketOrder);
     if (basketOrder == null) {
-      log.info("Bid step");
       if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
-      // if (true) {
+        // if (true) {
         try {
           OrdersResponseDto bidOrder = ordersJobConfiguration.bidJob(market, "10000");
-          Order newOrder = new Order(bidOrder.getDate(), bidOrder.getUuid(), market,
-                                      bidOrder.getState(), boll, mfi, price, null);
-          log.info("{}", newOrder);
+          Order newOrder = new Order(bidOrder.getDate(), bidOrder.getUuid(), market, bidOrder.getState(), boll, mfi,
+              price, null);
+          log.info("newOrder: {}", newOrder);
           orderRepository.insertOrder(newOrder);
         } catch (Exception e) {
           log.info(e.getMessage());
         }
       }
     } else {
-      log.info("Ask step");
       // if (true) {
       if (bollFlag.equals("ask") || mfiFlag.equals("ask")) {
+        log.info("basketOrder: {}", basketOrder);
         try {
           OrdersResponseDto upbitOrder = ordersJobConfiguration.getOrderJob(basketOrder.getUuid());
           Double volume = upbitOrder.getExecuted_volume();
           OrdersResponseDto askOrder = ordersJobConfiguration.askJob(market, volume.toString());
-          log.info("upbitOrder {}", upbitOrder);
-          log.info("askOrder {}", askOrder);
-          History history = new History(askOrder.getDate(), market, volume, basketOrder.getBoll(), basketOrder.getMfi(), basketOrder.getPrice(), 
-                                        boll, mfi, price, ((price / basketOrder.getPrice()) - 1) * 100);
+          log.info("upbitOrder: {}", upbitOrder);
+          log.info("askOrder: {}", askOrder);
+          History history = new History(askOrder.getDate(), market, volume, basketOrder.getBoll(), basketOrder.getMfi(),
+              basketOrder.getPrice(), boll, mfi, price, ((price / basketOrder.getPrice()) - 1) * 100);
           orderRepository.deleteOrder();
-          log.info("history {}", history);
+          log.info("history: {}", history);
           historyRepository.insertHistory(history);
         } catch (Exception e) {
           log.info(e.getMessage());
