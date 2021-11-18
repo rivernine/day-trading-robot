@@ -116,50 +116,34 @@ public class DayTradingJobScheduler {
 
   @Scheduled(fixedDelay = 1000000)
   public void runGetMultipleCandlesJob() {
-    
+    String market = "KRW-BTC";
+    JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "5", "20");
+    log.info("{}", result[0]);
+    // log.info("boll: {}", checkBollinger(result));
+    // log.info("mfi: {}", checkMFI(Arrays.copyOfRange(result, 0, 11)));
+    String bollFlag = checkBollinger(result);
+    String mfiFlag = checkMFI(Arrays.copyOfRange(result, 0, 11));
 
-    for (String market : markets) {
-      JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "5", "20");
-      log.info("{}", result[0]);
-      // log.info("boll: {}", checkBollinger(result));
-      // log.info("mfi: {}", checkMFI(Arrays.copyOfRange(result, 0, 11)));
-      String bollFlag = checkBollinger(result);
-      String mfiFlag = checkMFI(Arrays.copyOfRange(result, 0, 11));
-
-      try{
-        OrdersResponseDto ordersBidResponseDto = ordersJobConfiguration.bidJob(market, "10000");
-        log.info("{}", ordersBidResponseDto);
-      } catch (Exception e){
-        log.info(e.getMessage());
-      }
-
-      Order myOrder = orderRepository.getOrder();
-      log.info("{}", myOrder);
-      if (myOrder == null) {
-        log.info("Bid step");
-        if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
-          try {
-            OrdersResponseDto ordersBidResponseDto = ordersJobConfiguration.bidJob(market, "10000");
-            if (ordersBidResponseDto.getSuccess()) {
-              orderRepository.insertOrder(new Order(
-                ordersBidResponseDto.getDate(),
-                ordersBidResponseDto.getUuid(),
-                market,
-                ordersBidResponseDto.getState(),
-                null,
-                null
-              ));
-            }
-          } catch (Exception e) {
-            log.info(e.getMessage());
-          }
+    Order myOrder = orderRepository.getOrder();
+    log.info("{}", myOrder);
+    if (myOrder == null) {
+      log.info("Bid step");
+      // if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
+      if (true) {
+        try {
+          OrdersResponseDto ordersBidResponseDto = ordersJobConfiguration.bidJob(market, "10000");
+          Order newOrder = new Order(ordersBidResponseDto.getDate(), ordersBidResponseDto.getUuid(), market,
+                                      ordersBidResponseDto.getState(), null, null);
+          log.info("{}", newOrder);
+          orderRepository.insertOrder(newOrder);
+        } catch (Exception e) {
+          log.info(e.getMessage());
         }
-      } else {
-        log.info("Ask step");
       }
-      
-      log.info("{}", orderRepository.getOrder());
+    } else {
+      log.info("Ask step");
 
     }
+
   }
 }

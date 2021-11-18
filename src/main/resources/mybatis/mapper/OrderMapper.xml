@@ -9,6 +9,6 @@
     SELECT * FROM basket LIMIT 1;
   </select>
   <insert id="insertOrder">
-    INSERT basket (date, uuid, price, volume) VALUES (#{date}, #{uuid}, #{price}, ${volume})
+    INSERT basket (date, uuid, market, state, price, volume) VALUES (#{date}, #{uuid}, #{market}, #{state}, #{price}, #{volume})
   </insert>
 </mapper>
