@@ -5,4 +5,7 @@
   <mappers>
     <mapper resource="OrderMapper.xml"/>
   </mappers>
+  <mappers>
+    <mapper resource="HistoryMapper.xml"/>
+  </mappers>
 </configuration>

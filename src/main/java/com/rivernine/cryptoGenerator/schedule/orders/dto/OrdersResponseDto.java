@@ -18,9 +18,10 @@ public class OrdersResponseDto {
   private Map<String, TradeDto> trades;
   private Double tradePrice;
   private Boolean success;
+  private Double executed_volume;
 
   @Builder
-  public OrdersResponseDto(String date, String uuid, String market, String state, Map<String, TradeDto> trades, Double tradePrice, Boolean success) {
+  public OrdersResponseDto(String date, String uuid, String market, String state, Map<String, TradeDto> trades, Double tradePrice, Boolean success, Double executed_volume) {
     this.date = date;
     this.uuid = uuid;
     this.market = market;
@@ -28,5 +29,6 @@ public class OrdersResponseDto {
     this.trades = trades;
     this.tradePrice = tradePrice;
     this.success = success;
+    this.executed_volume = executed_volume;
   }
 }

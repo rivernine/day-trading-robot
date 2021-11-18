@@ -54,9 +54,11 @@ public class CryptoApiService {
     JsonObject response = upbitApi.getOrder(uuid);
     if(!response.has("error")) {
       // ordersResponseDto.setPaidFee(response.get("reserved_fee").getAsString());
+      ordersResponseDto.setDate(response.get("created_at").getAsString());
       ordersResponseDto.setUuid(response.get("uuid").getAsString());
       ordersResponseDto.setMarket(response.get("market").getAsString());
       ordersResponseDto.setState(response.get("state").getAsString());
+      ordersResponseDto.setExecuted_volume(response.get("executed_volume").getAsDouble());
       Map<String, TradeDto> trades = new HashMap<>();
       JsonArray jsonArray = response.get("trades").getAsJsonArray();
       for(JsonElement element: jsonArray) {
@@ -166,22 +168,15 @@ public class CryptoApiService {
     OrdersResponseDto ordersResponseDto = OrdersResponseDto.builder()
                                             .success(false)
                                             .build();
-    if( !statusProperties.getAskRunning() || statusProperties.getAskPending() ) {
-      statusProperties.setAskRunning(true);
-      statusProperties.setAskPending(true);
-
-      JsonObject response = upbitApi.postOrders(market, "ask", volume, "-1", "market");
-      if(!response.has("error")) {
-        ordersResponseDto.setUuid(response.get("uuid").getAsString());
-        ordersResponseDto.setMarket(response.get("market").getAsString());
-        // ordersResponseDto.setPaidFee(response.get("reserved_fee").getAsString());
-        ordersResponseDto.setState(response.get("state").getAsString());
-        ordersResponseDto.setSuccess(true);
-        statusProperties.setAskPending(false);
-      }
-      statusProperties.setAskRunning(false);
+    JsonObject response = upbitApi.postOrders(market, "ask", volume, "-1", "market");
+    if(!response.has("error")) {
+      ordersResponseDto.setDate(response.get("created_at").getAsString());
+      ordersResponseDto.setUuid(response.get("uuid").getAsString());
+      ordersResponseDto.setMarket(response.get("market").getAsString());
+      // ordersResponseDto.setPaidFee(response.get("reserved_fee").getAsString());
+      ordersResponseDto.setState(response.get("state").getAsString());
+      ordersResponseDto.setSuccess(true);
     }
-
     return ordersResponseDto;
   }
 }

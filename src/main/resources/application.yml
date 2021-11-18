@@ -26,7 +26,7 @@ spring:
     url: jdbc:mariadb://192.168.56.100:3306/UPBIT
     driver-class-name: org.mariadb.jdbc.Driver
     username: root
-    password: test
+    password: root
     hikari:
       connection-timeout: 60000 # 1min
       maximum-pool-size: 20

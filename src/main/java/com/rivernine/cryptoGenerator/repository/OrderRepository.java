@@ -12,4 +12,5 @@ public interface OrderRepository {
   // List<Map<String, Object>> getOrder();
   Order getOrder();
   void insertOrder(Order order);
+  void deleteOrder();
 }

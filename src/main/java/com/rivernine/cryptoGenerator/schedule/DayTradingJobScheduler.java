@@ -1,14 +1,14 @@
 package com.rivernine.cryptoGenerator.schedule;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import com.google.gson.JsonObject;
 import com.rivernine.cryptoGenerator.config.ScaleTradeStatusProperties;
 import com.rivernine.cryptoGenerator.config.StatusProperties;
+import com.rivernine.cryptoGenerator.domain.history.History;
 import com.rivernine.cryptoGenerator.domain.order.Order;
+import com.rivernine.cryptoGenerator.repository.HistoryRepository;
 import com.rivernine.cryptoGenerator.repository.OrderRepository;
 import com.rivernine.cryptoGenerator.schedule.getCandle.GetCandleJobConfiguration;
 import com.rivernine.cryptoGenerator.schedule.orders.OrdersJobConfiguration;
@@ -32,12 +32,16 @@ public class DayTradingJobScheduler {
   private String candleMinutes;
 
   private final OrderRepository orderRepository;
+  private final HistoryRepository historyRepository;
   private final StatusProperties statusProperties;
   private final ScaleTradeStatusProperties scaleTradeStatusProperties;
   private final GetCandleJobConfiguration getCandleJobConfiguration;
   // private final AnalysisForScaleTradingJobConfiguration
   // analysisForScaleTradingJobConfiguration;
   private final OrdersJobConfiguration ordersJobConfiguration;
+
+  private Double boll = 0.0;
+  private Double mfi = 0.0;
 
   public String checkBollinger(JsonObject[] objs) {
     Double sum = 0.0;
@@ -59,7 +63,7 @@ public class DayTradingJobScheduler {
     Double pos = (objs[0].get("trade_price").getAsDouble() - lo) / (hi - lo);
     log.info("lo: " + String.format("%.0f", lo) + " me: " + String.format("%.0f", me) + " hi: "
         + String.format("%.0f", hi) + " pos: " + String.format("%.2f", pos));
-
+    boll = Math.round(pos * 100) / 100.0;
     if (pos <= 0.1) {
       return "bid";
     } else if (pos >= 0.9) {
@@ -91,7 +95,7 @@ public class DayTradingJobScheduler {
       else
         negativeRMF += tp * volList[i];
     }
-    Double MFI = positiveRMF / (positiveRMF + negativeRMF) * 100;
+    Double curMfi = positiveRMF / (positiveRMF + negativeRMF) * 100;
 
     positiveRMF = 0.0;
     negativeRMF = 0.0;
@@ -103,11 +107,12 @@ public class DayTradingJobScheduler {
       else
         negativeRMF += tp * volList[i];
     }
-    Double befMFI = positiveRMF / (positiveRMF + negativeRMF) * 100;
-    log.info(MFI.toString());
-    if (MFI < 20 && MFI - befMFI > 0) {
+    Double befMfi = positiveRMF / (positiveRMF + negativeRMF) * 100;
+    log.info(curMfi.toString());
+    mfi = Math.round(curMfi * 100) / 100.0;
+    if (curMfi < 20 && curMfi - befMfi > 0) {
       return "bid";
-    } else if (MFI > 80) {
+    } else if (curMfi > 80) {
       return "ask";
     } else {
       return "none";
@@ -117,23 +122,24 @@ public class DayTradingJobScheduler {
   @Scheduled(fixedDelay = 1000000)
   public void runGetMultipleCandlesJob() {
     String market = "KRW-BTC";
-    JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "5", "20");
+    JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "10", "20");
     log.info("{}", result[0]);
     // log.info("boll: {}", checkBollinger(result));
     // log.info("mfi: {}", checkMFI(Arrays.copyOfRange(result, 0, 11)));
     String bollFlag = checkBollinger(result);
     String mfiFlag = checkMFI(Arrays.copyOfRange(result, 0, 11));
+    Double price = result[0].get("trade_price").getAsDouble();
 
-    Order myOrder = orderRepository.getOrder();
-    log.info("{}", myOrder);
-    if (myOrder == null) {
+    Order basketOrder = orderRepository.getOrder();
+    log.info("{}", basketOrder);
+    if (basketOrder == null) {
       log.info("Bid step");
-      // if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
-      if (true) {
+      if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
+      // if (true) {
         try {
-          OrdersResponseDto ordersBidResponseDto = ordersJobConfiguration.bidJob(market, "10000");
-          Order newOrder = new Order(ordersBidResponseDto.getDate(), ordersBidResponseDto.getUuid(), market,
-                                      ordersBidResponseDto.getState(), null, null);
+          OrdersResponseDto bidOrder = ordersJobConfiguration.bidJob(market, "10000");
+          Order newOrder = new Order(bidOrder.getDate(), bidOrder.getUuid(), market,
+                                      bidOrder.getState(), boll, mfi, price, null);
           log.info("{}", newOrder);
           orderRepository.insertOrder(newOrder);
         } catch (Exception e) {
@@ -142,7 +148,23 @@ public class DayTradingJobScheduler {
       }
     } else {
       log.info("Ask step");
-
+      // if (true) {
+      if (bollFlag.equals("ask") || mfiFlag.equals("ask")) {
+        try {
+          OrdersResponseDto upbitOrder = ordersJobConfiguration.getOrderJob(basketOrder.getUuid());
+          Double volume = upbitOrder.getExecuted_volume();
+          OrdersResponseDto askOrder = ordersJobConfiguration.askJob(market, volume.toString());
+          log.info("upbitOrder {}", upbitOrder);
+          log.info("askOrder {}", askOrder);
+          History history = new History(askOrder.getDate(), market, volume, basketOrder.getBoll(), basketOrder.getMfi(), basketOrder.getPrice(), 
+                                        boll, mfi, price, ((price / basketOrder.getPrice()) - 1) * 100);
+          orderRepository.deleteOrder();
+          log.info("history {}", history);
+          historyRepository.insertHistory(history);
+        } catch (Exception e) {
+          log.info(e.getMessage());
+        }
+      }
     }
 
   }
