@@ -149,21 +149,13 @@ public class CryptoApiService {
     OrdersResponseDto ordersResponseDto = OrdersResponseDto.builder()
                                             .success(false)
                                             .build();
-    if( !statusProperties.getBidRunning() || statusProperties.getBidPending() ) {
-      statusProperties.setBidRunning(true);
-      statusProperties.setBidPending(true);
-
-      JsonObject response = upbitApi.postOrders(market, "bid", "-1", price, "price");
-      if(!response.has("error")) {
-        ordersResponseDto.setUuid(response.get("uuid").getAsString());
-        ordersResponseDto.setMarket(response.get("market").getAsString());
-        // ordersResponseDto.setPaidFee(response.get("reserved_fee").getAsString());
-        ordersResponseDto.setState(response.get("state").getAsString());
-        ordersResponseDto.setSuccess(true);
-        scaleTradeStatusProperties.addBidInfoPerLevel(ordersResponseDto);
-        statusProperties.setBidPending(false);
-      }
-      statusProperties.setBidRunning(false);
+    JsonObject response = upbitApi.postOrders(market, "bid", "-1", price, "price");
+    if(!response.has("error")) {
+      ordersResponseDto.setDate(response.get("created_at").getAsString());
+      ordersResponseDto.setUuid(response.get("uuid").getAsString());
+      ordersResponseDto.setMarket(response.get("market").getAsString());
+      ordersResponseDto.setState(response.get("state").getAsString());
+      ordersResponseDto.setSuccess(true);
     }
 
     return ordersResponseDto;

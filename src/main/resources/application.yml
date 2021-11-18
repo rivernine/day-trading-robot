@@ -1,10 +1,10 @@
 server.port: 8081
 
-# spring:
-  # profiles:
-  #   active: mariadb
-  #   group:
-  #     mariadb: local-mariadb
+spring:
+  profiles:
+    active: mariadb
+    group:
+      mariadb: local-mariadb
 
 upbit:
   accessKey: ${accessKey:NONE}
@@ -26,7 +26,7 @@ spring:
     url: jdbc:mariadb://192.168.56.100:3306/UPBIT
     driver-class-name: org.mariadb.jdbc.Driver
     username: root
-    password: root
+    password: test
     hikari:
       connection-timeout: 60000 # 1min
       maximum-pool-size: 20
@@ -34,3 +34,7 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create # 변경된 스키마만 적용 (none/update/validate/create/create-drop)
+
+mybatis:
+  type-aliases-package: kr.co.fastcampus.eatgo
+  mapper-locations: mybatis/mapper/*.xml

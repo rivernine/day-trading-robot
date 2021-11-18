@@ -106,18 +106,7 @@
             
 //             ordersBidResponseDto = ordersJobConfiguration.bidJob(market, bidVolume, endingPrice.toString());
 //             log.info(ordersBidResponseDto.toString());
-//             if(ordersBidResponseDto.getSuccess()) {
-//               log.info("[changeStatus: 10 -> 30] [wait step] ");
-//               OrdersResponseDto getOrderResponseDto = ordersJobConfiguration.getOrderJob(ordersBidResponseDto.getUuid());
-//               getOrderResponseDto.setTradePrice(endingPrice);
-//               log.info(getOrderResponseDto.toString());
-//               scaleTradeStatusProperties.addBidInfoPerLevel(getOrderResponseDto);
-//               scaleTradeStatusProperties.setBidTime(lastCandle.getCandleDateTime());
-//               scaleTradeStatusProperties.setWaitingBidOrder(true);
-//               statusProperties.setCurrentStatus(30);
-//             } else {
-//               log.info("Error during bidding");
-//             }
+//                                                                                                                                                                                                                                       
 //           }
 //           break;      
 //         case 20:

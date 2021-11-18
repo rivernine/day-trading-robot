@@ -11,6 +11,7 @@ import lombok.ToString;
 @Getter
 @Setter
 public class OrdersResponseDto {
+  private String date;
   private String uuid;
   private String market;
   private String state;
@@ -19,7 +20,8 @@ public class OrdersResponseDto {
   private Boolean success;
 
   @Builder
-  public OrdersResponseDto(String uuid, String market, String state, Map<String, TradeDto> trades, Double tradePrice, Boolean success) {
+  public OrdersResponseDto(String date, String uuid, String market, String state, Map<String, TradeDto> trades, Double tradePrice, Boolean success) {
+    this.date = date;
     this.uuid = uuid;
     this.market = market;
     this.state = state;
