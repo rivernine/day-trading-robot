@@ -1,10 +1,10 @@
 server.port: 8081
 
-spring:
-  profiles:
-    active: mariadb
-    group:
-      mariadb: local-mariadb
+# spring:
+  # profiles:
+  #   active: mariadb
+  #   group:
+  #     mariadb: local-mariadb
 
 upbit:
   accessKey: ${accessKey:NONE}
