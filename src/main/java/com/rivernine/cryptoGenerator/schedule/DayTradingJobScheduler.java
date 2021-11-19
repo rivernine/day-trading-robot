@@ -123,12 +123,12 @@ public class DayTradingJobScheduler {
   @Scheduled(fixedDelay = 1000)
   public void runGetMultipleCandlesJob() {
     String market = "KRW-BTC";
-    JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "10", "20");
+    JsonObject[] result = getCandleJobConfiguration.getCandlesJob(market, "10", "21");
     // log.info("{}", result[0]);
     // log.info("boll: {}", checkBollinger(result));
     // log.info("mfi: {}", checkMFI(Arrays.copyOfRange(result, 0, 11)));
-    String bollFlag = checkBollinger(result);
-    String mfiFlag = checkMFI(Arrays.copyOfRange(result, 0, 11));
+    String bollFlag = checkBollinger(Arrays.copyOfRange(result, 1, 21));
+    String mfiFlag = checkMFI(Arrays.copyOfRange(result, 1, 12));
     Double price = result[0].get("trade_price").getAsDouble();
 
     Order basketOrder = orderRepository.getOrder();
@@ -136,7 +136,7 @@ public class DayTradingJobScheduler {
       if (bollFlag.equals("bid") && mfiFlag.equals("bid")) {
         // if (true) {
         try {
-          OrdersResponseDto bidOrder = ordersJobConfiguration.bidJob(market, "10000");
+          OrdersResponseDto bidOrder = ordersJobConfiguration.bidJob(market, "90000");
           Order newOrder = new Order(bidOrder.getDate(), bidOrder.getUuid(), market, bidOrder.getState(), boll, mfi,
               price, null);
           log.info("newOrder: {}", newOrder);
